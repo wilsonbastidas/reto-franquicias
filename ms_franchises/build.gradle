@@ -10,6 +10,7 @@ allprojects {
         mavenCentral()
     }
     dependencies {
+        implementation platform('software.amazon.awssdk:bom:2.47.6')
     }
 }
 
