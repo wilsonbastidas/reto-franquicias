@@ -1,0 +1,99 @@
+name: reto-nequi-infra
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: franchises-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-franchises_db}
+      TZ: ${TZ:-America/Bogota}
+      PGTZ: ${TZ:-America/Bogota}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Se ejecuta automáticamente solo cuando el volumen está vacío (primera vez)
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - franchises-net
+
+  # ---------------------------------------------------------------------------
+  # LocalStack - Secrets Manager
+  # ---------------------------------------------------------------------------
+  localstack:
+    # 4.14 es la última imagen "community" que no exige LOCALSTACK_AUTH_TOKEN.
+    # Las imágenes 2026.x (unified) requieren license/token incluso en local.
+    image: localstack/localstack:4.14
+    container_name: franchises-localstack
+    restart: unless-stopped
+    environment:
+      SERVICES: secretsmanager
+      DEBUG: "0"
+      PERSISTENCE: "1"
+      DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      # Descomenta y define LOCALSTACK_AUTH_TOKEN en el .env solo si tu edición lo requiere
+      # LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+    ports:
+      - "${LOCALSTACK_PORT:-4566}:4566"
+    volumes:
+      - localstack-data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4566/_localstack/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - franchises-net
+
+  # ---------------------------------------------------------------------------
+  # Inicializador del secreto (contenedor de un solo uso)
+  # Crea el secreto con las credenciales de PostgreSQL en LocalStack.
+  # Es idempotente: si el secreto ya existe, actualiza su valor.
+  # ---------------------------------------------------------------------------
+  localstack-secret-init:
+    image: amazon/aws-cli:2.42.0
+    container_name: franchises-localstack-secret-init
+    restart: "no"
+    entrypoint: ["/bin/sh", "/scripts/init-secret.sh"]
+    environment:
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      SECRET_NAME: ${SECRET_NAME:-franchises/db-credentials}
+      DB_HOST: postgres
+      DB_PORT: ${POSTGRES_PORT:-5432}
+      DB_NAME: ${POSTGRES_DB:-franchises_db}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - ./localstack/init-secret.sh:/scripts/init-secret.sh:ro
+    depends_on:
+      localstack:
+        condition: service_healthy
+    networks:
+      - franchises-net
+
+volumes:
+  postgres-data:
+    name: franchises-postgres-data
+  localstack-data:
+    name: franchises-localstack-data
+
+networks:
+  franchises-net:
+    name: franchises-net
+    driver: bridge
