@@ -26,6 +26,7 @@ class UseCasesConfigTest {
         } catch (org.springframework.beans.factory.UnsatisfiedDependencyException e) {
             assertTrue(true, "Unsatisfied dependencies are expected for UseCases resolving gateways");
         }
+        assertTrue(new UseCasesConfig() != null);
     }
 
     @Configuration

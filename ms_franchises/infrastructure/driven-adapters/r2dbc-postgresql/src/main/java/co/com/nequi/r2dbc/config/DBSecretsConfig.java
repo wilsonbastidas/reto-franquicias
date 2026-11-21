@@ -29,10 +29,13 @@ public class DBSecretsConfig {
 
     @Bean
     public PostgresqlConnectionProperties getRdsSecretConfig(@Value("${aws.rds.secret-name}") String rdsSecret) {
-        return Mono.defer(() -> new AWSSecretManagerConnectorAsync(getConfig())
-                        .getSecret(rdsSecret, PostgresqlConnectionProperties.class))
+        return Mono.defer(() -> createConnector().getSecret(rdsSecret, PostgresqlConnectionProperties.class))
                 .subscribeOn(Schedulers.boundedElastic())
                 .block(SECRET_TIMEOUT);
+    }
+
+    AWSSecretManagerConnectorAsync createConnector() {
+        return new AWSSecretManagerConnectorAsync(getConfig());
     }
 
     private AWSSecretsManagerConfig getConfig() {

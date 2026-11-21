@@ -1,7 +1,7 @@
 package co.com.nequi.api;
 
-import co.com.nequi.api.dto.FranchiseRecord;
-import co.com.nequi.api.dto.FranchiseResponseDTO;
+import co.com.nequi.api.dto.FranchiseRequest;
+import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.dto.ResponseGenericDTO;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.FranchiseMapper;
@@ -24,7 +24,7 @@ public class Handler {
     private final GlobalHandlerError globalHandlerError;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
-        return request.bodyToMono(FranchiseRecord.class)
+        return request.bodyToMono(FranchiseRequest.class)
                 .flatMap(validator::validate)
                 .map(mapper::toDomain)
                 .flatMap(useCase::createFranchise)
@@ -33,11 +33,11 @@ public class Handler {
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 
-    private Mono<ServerResponse> buildCreatedResponse(FranchiseResponseDTO franchiseResponseDTO) {
-        ResponseGenericDTO<FranchiseResponseDTO> body = new ResponseGenericDTO<>(
+    private Mono<ServerResponse> buildCreatedResponse(FranchiseResponse franchiseResponse) {
+        ResponseGenericDTO<FranchiseResponse> body = new ResponseGenericDTO<>(
                 HttpStatus.CREATED.value(),
                 "Franchise created successfully",
-                franchiseResponseDTO,
+                franchiseResponse,
                 null
         );
         return ServerResponse.status(HttpStatus.CREATED).bodyValue(body);
