@@ -7,7 +7,7 @@ set -eu
 
 AWS_ENDPOINT_URL="${AWS_ENDPOINT_URL:-http://localstack:4566}"
 SECRET_NAME="${SECRET_NAME:-franchises/db-credentials}"
-DB_HOST="${DB_HOST:-postgres}"
+DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-franchises_db}"
 DB_USER="${DB_USER:-postgres}"
@@ -19,13 +19,12 @@ aws() {
 
 SECRET_STRING=$(cat <<JSON
 {
-  "engine": "postgres",
   "host": "${DB_HOST}",
   "port": ${DB_PORT},
-  "dbname": "${DB_NAME}",
+  "database": "${DB_NAME}",
+  "schema": "${DB_SCHEMA:-public}",
   "username": "${DB_USER}",
-  "password": "${DB_PASSWORD}",
-  "jdbcUrl": "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+  "password": "${DB_PASSWORD}"
 }
 JSON
 )

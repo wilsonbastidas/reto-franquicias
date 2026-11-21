@@ -10,6 +10,7 @@ allprojects {
         mavenCentral()
     }
     dependencies {
+        implementation platform('software.amazon.awssdk:bom:2.47.6')
     }
 }
 
@@ -19,9 +20,43 @@ dependenciesOverride {
    ensure 'tools.jackson.core:jackson-core:3.3.0'
 }
 
+def jacocoExcludes = [
+    '**/MainApplication.class',
+    '**/MainApplication$*.class',
+    '**/model/**',
+    '**/entities/**',
+    '**/exceptions/**',
+    '**/dto/**',
+    '**/*Mapper.class',
+    '**/*MapperImpl.class',
+    '**/*MapperImpl$*.class',
+    '**/ErrorResponse.class',
+    '**/ErrorResponse$*.class'
+]
+
 subprojects {
     // Remove once it has been updated in Spring Boot
     ext['jackson-2-bom.version'] = "2.23.0"
     ext['jackson-bom.version'] = "3.3.0"
+}
+
+allprojects {
+    plugins.withId('jacoco') {
+        afterEvaluate {
+            tasks.withType(JacocoReport).configureEach {
+                classDirectories.setFrom(files(classDirectories.files.collect {
+                    fileTree(dir: it, exclude: jacocoExcludes)
+                }))
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.withType(JacocoReport).configureEach {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
 }
 
