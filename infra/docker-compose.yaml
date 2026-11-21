@@ -74,9 +74,10 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       SECRET_NAME: ${SECRET_NAME:-franchises/db-credentials}
-      DB_HOST: postgres
+      DB_HOST: ${DB_HOST:-localhost}
       DB_PORT: ${POSTGRES_PORT:-5432}
       DB_NAME: ${POSTGRES_DB:-franchises_db}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
