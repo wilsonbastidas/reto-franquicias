@@ -3,7 +3,6 @@ package co.com.nequi.r2dbc.branch;
 import co.com.nequi.model.branch.Branch;
 import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.r2dbc.entities.BranchEntity;
 import co.com.nequi.r2dbc.mapper.BranchEntityMapper;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +45,6 @@ class BranchRepositoryAdapterTest {
         Branch mappedDomain = Branch.builder().id(branchId).name("Sucursal").createdAt(now).updatedAt(now).build();
 
         when(branchEntityMapper.toEntity(branch)).thenReturn(entity);
-        when(branchRepository.findByName(anyString())).thenReturn(Mono.empty());
         when(branchRepository.save(any(BranchEntity.class))).thenReturn(Mono.just(savedEntity));
         when(branchEntityMapper.toDomain(savedEntity)).thenReturn(mappedDomain);
 
@@ -60,23 +57,6 @@ class BranchRepositoryAdapterTest {
     }
 
     @Test
-    void shouldThrowConflictWhenBranchAlreadyExists() {
-        UUID franchiseId = UUID.randomUUID();
-        Franchise franchise = Franchise.builder().id(franchiseId).name("Franquicia").build();
-        Branch branch = Branch.builder().name("Sucursal").franchise(franchise).build();
-        BranchEntity entity = new BranchEntity();
-        entity.setName("Sucursal");
-        BranchEntity existing = new BranchEntity(UUID.randomUUID(), "Sucursal", franchiseId, LocalDateTime.now(), LocalDateTime.now());
-
-        when(branchEntityMapper.toEntity(branch)).thenReturn(entity);
-        when(branchRepository.findByName("Sucursal")).thenReturn(Mono.just(existing));
-
-        StepVerifier.create(adapter.save(branch))
-                .expectError(ConflictException.class)
-                .verify();
-    }
-
-    @Test
     void shouldMapSaveErrorToPersistenceException() {
         UUID franchiseId = UUID.randomUUID();
         Franchise franchise = Franchise.builder().id(franchiseId).name("Franquicia").build();
@@ -85,7 +65,6 @@ class BranchRepositoryAdapterTest {
         entity.setName("Sucursal");
 
         when(branchEntityMapper.toEntity(branch)).thenReturn(entity);
-        when(branchRepository.findByName(anyString())).thenReturn(Mono.empty());
         when(branchRepository.save(any(BranchEntity.class))).thenReturn(Mono.error(new RuntimeException("db error")));
 
         StepVerifier.create(adapter.save(branch))
@@ -114,6 +93,29 @@ class BranchRepositoryAdapterTest {
         when(branchRepository.findById(id)).thenReturn(Mono.error(new RuntimeException("db error")));
 
         StepVerifier.create(adapter.findById(id))
+                .expectError(PersistenceException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldFindByName() {
+        BranchEntity entity = new BranchEntity();
+        entity.setName("Sucursal");
+        Branch domain = Branch.builder().name("Sucursal").build();
+
+        when(branchRepository.findByName("Sucursal")).thenReturn(Mono.just(entity));
+        when(branchEntityMapper.toDomain(entity)).thenReturn(domain);
+
+        StepVerifier.create(adapter.findByName("Sucursal"))
+                .expectNext(domain)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapFindByNameErrorToPersistenceException() {
+        when(branchRepository.findByName("Sucursal")).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.findByName("Sucursal"))
                 .expectError(PersistenceException.class)
                 .verify();
     }

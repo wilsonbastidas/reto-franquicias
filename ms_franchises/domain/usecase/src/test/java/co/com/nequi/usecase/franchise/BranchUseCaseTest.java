@@ -1,6 +1,7 @@
 package co.com.nequi.usecase.franchise;
 
 import co.com.nequi.model.branch.Branch;
+import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.model.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.model.gateways.BranchRepositoryGateway;
@@ -39,6 +40,7 @@ class BranchUseCaseTest {
         Branch saved = Branch.builder().id(UUID.randomUUID()).name("Sucursal").franchise(franchise).build();
 
         when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(franchise));
+        when(branchRepository.findByName("Sucursal")).thenReturn(Mono.empty());
         when(branchRepository.save(any(Branch.class))).thenReturn(Mono.just(saved));
 
         StepVerifier.create(branchUseCase.createBranch(branch))
@@ -55,6 +57,21 @@ class BranchUseCaseTest {
 
         StepVerifier.create(branchUseCase.createBranch(branch))
                 .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldReturnConflictWhenBranchNameAlreadyExists() {
+        UUID franchiseId = UUID.randomUUID();
+        Franchise franchise = Franchise.builder().id(franchiseId).name("Franquicia").build();
+        Branch branch = Branch.builder().name("Sucursal").franchise(Franchise.builder().id(franchiseId).build()).build();
+        Branch existing = Branch.builder().id(UUID.randomUUID()).name("Sucursal").build();
+
+        when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(franchise));
+        when(branchRepository.findByName("Sucursal")).thenReturn(Mono.just(existing));
+
+        StepVerifier.create(branchUseCase.createBranch(branch))
+                .expectError(ConflictException.class)
                 .verify();
     }
 }
