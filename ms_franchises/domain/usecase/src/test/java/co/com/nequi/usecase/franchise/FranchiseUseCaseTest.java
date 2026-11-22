@@ -1,5 +1,6 @@
 package co.com.nequi.usecase.franchise;
 
+import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.model.gateways.FranchiseRepositoryGateway;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,24 @@ class FranchiseUseCaseTest {
                 .name("Franquicia")
                 .build();
 
+        when(franchiseRepository.findByName("Franquicia")).thenReturn(Mono.empty());
         when(franchiseRepository.save(any(Franchise.class))).thenReturn(Mono.just(franchise));
 
         StepVerifier.create(useCase.createFranchise(franchise))
                 .expectNext(franchise)
                 .verifyComplete();
+    }
+
+    @Test
+    void createFranchiseShouldReturnConflictWhenNameExists() {
+        Franchise franchise = Franchise.builder()
+                .name("Franquicia")
+                .build();
+
+        when(franchiseRepository.findByName("Franquicia")).thenReturn(Mono.just(Franchise.builder().id(UUID.randomUUID()).name("Franquicia").build()));
+
+        StepVerifier.create(useCase.createFranchise(franchise))
+                .expectError(ConflictException.class)
+                .verify();
     }
 }

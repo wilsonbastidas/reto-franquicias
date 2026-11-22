@@ -1,10 +1,10 @@
 package co.com.nequi.r2dbc.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
@@ -24,12 +24,12 @@ public class ProductEntity {
 
     private BigDecimal stock;
 
-    @Column(name = "branch_id")
+    @Column("branch_id")
     private UUID branchId;
 
-    @Column(name = "created_at")
+    @Column("created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column("updated_at")
     private LocalDateTime updatedAt;
 }

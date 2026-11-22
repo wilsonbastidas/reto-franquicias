@@ -47,6 +47,18 @@ class ProductRouterRestTest {
     private ObjectValidator validator;
 
     @Test
+    void shouldRouteDeleteProduct() {
+        UUID productId = UUID.randomUUID();
+        when(validator.validateNotBlank(productId.toString(), "id")).thenReturn(Mono.just(productId.toString()));
+        when(productUseCase.deleteProduct(productId)).thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/api/v1/products/{id}", productId)
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
     void shouldRouteCreateProduct() {
         UUID branchId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();

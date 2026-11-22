@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Repository
 public class ProductRepositoryAdapter implements ProductRepositoryGateway {
@@ -38,7 +39,22 @@ public class ProductRepositoryAdapter implements ProductRepositoryGateway {
     }
 
     @Override
-    public Mono<Product> findById(String id) {
-        return null;
+    public Mono<Product> findById(UUID id) {
+        return productRepository.findById(id)
+                .map(mapper::toDomain)
+                .onErrorMap(e -> new PersistenceException("Error finding product", e));
+    }
+
+    @Override
+    public Mono<Product> findByName(String name) {
+        return productRepository.findByName(name)
+                .map(mapper::toDomain)
+                .onErrorMap(e -> new PersistenceException("Error finding product", e));
+    }
+
+    @Override
+    public Mono<Void> deleteById(UUID id) {
+        return productRepository.deleteById(id)
+                .onErrorMap(e -> new PersistenceException("Error deleting product", e));
     }
 }

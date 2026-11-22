@@ -43,6 +43,34 @@ class ObjectValidatorTest {
                 .verify();
     }
 
+    @Test
+    void shouldReturnValueWhenNotBlank() {
+        StepVerifier.create(objectValidator.validateNotBlank("abc", "id"))
+                .expectNext("abc")
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnErrorWhenBlank() {
+        StepVerifier.create(objectValidator.validateNotBlank("  ", "id"))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenEmpty() {
+        StepVerifier.create(objectValidator.validateNotBlank("", "id"))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenNotBlankValueIsNull() {
+        StepVerifier.create(objectValidator.validateNotBlank(null, "id"))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
     record DummyObject(@NotBlank String name) {
     }
 }

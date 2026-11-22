@@ -12,6 +12,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class ProductHandler {
@@ -29,6 +31,15 @@ public class ProductHandler {
                 .map(productMapper::toResponse)
                 .flatMap(response ->
                         ResponseUtils.buildCreatedResponse(response, "Product created successfully"))
+                .onErrorResume(e -> globalHandlerError.renderError(request, e));
+    }
+
+    public Mono<ServerResponse> deleteProductById(ServerRequest request) {
+        String id = request.pathVariable("id");
+        return validator.validateNotBlank(id, "id")
+                .map(UUID::fromString)
+                .flatMap(productUseCase::deleteProduct)
+                .then(ResponseUtils.buildDeletedResponse("Product deleted successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 }
