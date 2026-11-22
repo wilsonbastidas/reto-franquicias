@@ -1,6 +1,7 @@
 package co.com.nequi.usecase.product;
 
 import co.com.nequi.model.branch.Branch;
+import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.model.exceptions.NotFoundException;
 import co.com.nequi.model.gateways.BranchRepositoryGateway;
 import co.com.nequi.model.gateways.ProductRepositoryGateway;
@@ -39,11 +40,26 @@ class ProductUseCaseTest {
         Product saved = Product.builder().id(UUID.randomUUID()).name("Producto").stock(BigDecimal.TEN).branch(branch).build();
 
         when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
+        when(productRepository.findByName("Producto")).thenReturn(Mono.empty());
         when(productRepository.save(any(Product.class))).thenReturn(Mono.just(saved));
 
         StepVerifier.create(productUseCase.createProduct(product))
                 .expectNext(saved)
                 .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnConflictWhenProductNameAlreadyExists() {
+        UUID branchId = UUID.randomUUID();
+        Branch branch = Branch.builder().id(branchId).name("Sucursal").build();
+        Product product = Product.builder().name("Producto").stock(BigDecimal.TEN).branch(Branch.builder().id(branchId).build()).build();
+
+        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
+        when(productRepository.findByName("Producto")).thenReturn(Mono.just(Product.builder().id(UUID.randomUUID()).name("Producto").build()));
+
+        StepVerifier.create(productUseCase.createProduct(product))
+                .expectError(ConflictException.class)
+                .verify();
     }
 
     @Test

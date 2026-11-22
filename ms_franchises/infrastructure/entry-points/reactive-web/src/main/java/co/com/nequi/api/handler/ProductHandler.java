@@ -39,7 +39,7 @@ public class ProductHandler {
         return validator.validateNotBlank(id, "id")
                 .map(UUID::fromString)
                 .flatMap(productUseCase::deleteProduct)
-                .flatMap(v -> ResponseUtils.buildDeletedResponse("Product deleted successfully"))
+                .then(ResponseUtils.buildDeletedResponse("Product deleted successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 }

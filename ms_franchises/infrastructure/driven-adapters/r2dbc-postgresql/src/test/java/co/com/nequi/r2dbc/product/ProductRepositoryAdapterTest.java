@@ -116,4 +116,27 @@ class ProductRepositoryAdapterTest {
                 .expectError(PersistenceException.class)
                 .verify();
     }
+
+    @Test
+    void shouldFindByName() {
+        ProductEntity entity = new ProductEntity();
+        entity.setName("Producto");
+        Product domain = Product.builder().name("Producto").build();
+
+        when(productRepository.findByName("Producto")).thenReturn(Mono.just(entity));
+        when(mapper.toDomain(entity)).thenReturn(domain);
+
+        StepVerifier.create(adapter.findByName("Producto"))
+                .expectNext(domain)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapFindByNameErrorToPersistenceException() {
+        when(productRepository.findByName("Producto")).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.findByName("Producto"))
+                .expectError(PersistenceException.class)
+                .verify();
+    }
 }
