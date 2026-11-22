@@ -3,9 +3,12 @@ package co.com.nequi.r2dbc.product;
 import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.gateways.ProductRepositoryGateway;
 import co.com.nequi.model.product.Product;
+import co.com.nequi.r2dbc.branch.BranchRepository;
 import co.com.nequi.r2dbc.entities.ProductEntity;
+import co.com.nequi.r2dbc.mapper.BranchEntityMapper;
 import co.com.nequi.r2dbc.mapper.ProductEntityMapper;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -16,10 +19,15 @@ public class ProductRepositoryAdapter implements ProductRepositoryGateway {
 
     private final ProductRepository productRepository;
     private final ProductEntityMapper mapper;
+    private final BranchRepository branchRepository;
+    private final BranchEntityMapper branchEntityMapper;
 
-    public ProductRepositoryAdapter(ProductRepository productRepository, ProductEntityMapper mapper) {
+    public ProductRepositoryAdapter(ProductRepository productRepository, ProductEntityMapper mapper,
+                                    BranchRepository branchRepository, BranchEntityMapper branchEntityMapper) {
         this.productRepository = productRepository;
         this.mapper = mapper;
+        this.branchRepository = branchRepository;
+        this.branchEntityMapper = branchEntityMapper;
     }
 
 
@@ -65,5 +73,19 @@ public class ProductRepositoryAdapter implements ProductRepositoryGateway {
         return productRepository.save(entity)
                 .map(mapper::toDomain)
                 .onErrorMap(e -> new PersistenceException("Error updating product", e));
+    }
+
+    @Override
+    public Flux<Product> findMaxStockByFranchiseId(UUID franchiseId) {
+        return productRepository.findMaxStockByFranchiseId(franchiseId)
+                .flatMap(entity -> branchRepository.findById(entity.getBranchId())
+                        .map(branchEntityMapper::toDomain)
+                        .map(branch -> {
+                            Product product = mapper.toDomain(entity);
+                            product.setBranch(branch);
+                            return product;
+                        })
+                )
+                .onErrorMap(e -> new PersistenceException("Error finding max stock products", e));
     }
 }

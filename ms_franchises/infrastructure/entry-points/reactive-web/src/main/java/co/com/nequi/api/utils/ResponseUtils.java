@@ -28,4 +28,14 @@ public class ResponseUtils {
         );
         return ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(body);
     }
+
+    public static <T> Mono<ServerResponse> buildOkResponse(T data, String message) {
+        ResponseGenericDTO<T> body = new ResponseGenericDTO<>(
+                HttpStatus.OK.value(),
+                message,
+                data,
+                null
+        );
+        return ServerResponse.ok().bodyValue(body);
+    }
 }

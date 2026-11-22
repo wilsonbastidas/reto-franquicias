@@ -4,6 +4,7 @@ import co.com.nequi.api.dto.BranchResponse;
 import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.dto.ProductRequest;
 import co.com.nequi.api.dto.ProductResponse;
+import co.com.nequi.api.dto.StockProductRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.handler.ProductHandler;
 import co.com.nequi.api.mapper.ProductMapper;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -45,6 +47,57 @@ class ProductRouterRestTest {
 
     @MockitoBean
     private ObjectValidator validator;
+
+    @Test
+    void shouldRouteUpdateStockProduct() {
+        UUID productId = UUID.randomUUID();
+        UUID branchId = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        StockProductRequest request = new StockProductRequest(productId, BigDecimal.TEN);
+        Product domain = Product.builder().id(productId).stock(BigDecimal.TEN).build();
+        Product updated = Product.builder().id(productId).name("Producto").stock(BigDecimal.TEN).build();
+        BranchResponse branchResponse = new BranchResponse(branchId, "Sucursal", new FranchiseResponse(UUID.randomUUID().toString(), "Franquicia", now), now);
+        ProductResponse response = new ProductResponse(productId, "Producto", BigDecimal.TEN, branchResponse);
+
+        when(validator.validate(any(StockProductRequest.class))).thenReturn(Mono.just(request));
+        when(productMapper.toDomainFromStockRequest(any(StockProductRequest.class))).thenReturn(domain);
+        when(productUseCase.updateStockProduct(any(Product.class))).thenReturn(Mono.just(updated));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/products/update-stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(201)
+                .jsonPath("$.data.stock").isEqualTo(10);
+    }
+
+    @Test
+    void shouldRouteGetMaxStockProductsByFranchise() {
+        UUID franchiseId = UUID.randomUUID();
+        UUID branchId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        Product product = Product.builder().id(productId).name("Producto").stock(BigDecimal.TEN)
+                .branch(Branch.builder().id(branchId).name("Sucursal").build()).build();
+        BranchResponse branchResponse = new BranchResponse(branchId, "Sucursal", new FranchiseResponse(franchiseId.toString(), "Franquicia", now), now);
+        ProductResponse response = new ProductResponse(productId, "Producto", BigDecimal.TEN, branchResponse);
+
+        when(validator.validateNotBlank(franchiseId.toString(), "franchiseId")).thenReturn(Mono.just(franchiseId.toString()));
+        when(productUseCase.getMaxStockProductsByFranchise(franchiseId)).thenReturn(Flux.just(product));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(response);
+
+        webTestClient.get()
+                .uri("/api/v1/franchises/{franchiseId}/products/max-stock", franchiseId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.data[0].name").isEqualTo("Producto");
+    }
 
     @Test
     void shouldRouteDeleteProduct() {
