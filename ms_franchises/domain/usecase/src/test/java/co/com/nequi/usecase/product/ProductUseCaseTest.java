@@ -57,4 +57,27 @@ class ProductUseCaseTest {
                 .expectError(NotFoundException.class)
                 .verify();
     }
+
+    @Test
+    void shouldDeleteProductWhenExists() {
+        UUID productId = UUID.randomUUID();
+        Product product = Product.builder().id(productId).name("Producto").build();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.just(product));
+        when(productRepository.deleteById(productId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(productUseCase.deleteProduct(productId))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenDeletingNonExistingProduct() {
+        UUID productId = UUID.randomUUID();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(productUseCase.deleteProduct(productId))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
 }

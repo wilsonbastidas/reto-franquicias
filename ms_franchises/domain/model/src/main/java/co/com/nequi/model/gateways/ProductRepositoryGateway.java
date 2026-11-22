@@ -3,8 +3,12 @@ package co.com.nequi.model.gateways;
 import co.com.nequi.model.product.Product;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 public interface ProductRepositoryGateway {
 
     Mono<Product> save(Product product);
-    Mono<Product> findById(String id);
+    Mono<Product> findById(UUID id);
+    Mono<Product> findByName(String name);
+    Mono<Void> deleteById(UUID id);
 }

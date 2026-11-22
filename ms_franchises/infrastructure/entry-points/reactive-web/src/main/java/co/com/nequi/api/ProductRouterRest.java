@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -15,6 +16,7 @@ public class ProductRouterRest {
 
     @Bean
     public RouterFunction<ServerResponse> productRouterFunction(ProductHandler handler) {
-        return route(POST("/api/v1/products"), handler::createProduct);
+        return route(POST("/api/v1/products"), handler::createProduct)
+                .andRoute(DELETE("/api/v1/products/{id}"), handler::deleteProductById);
     }
 }

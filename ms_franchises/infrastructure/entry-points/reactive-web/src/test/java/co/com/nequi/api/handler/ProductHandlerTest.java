@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -46,8 +47,32 @@ class ProductHandlerTest {
     @BeforeEach
     void setUp() {
         ProductHandler handler = new ProductHandler(productUseCase, productMapper, globalHandlerError, validator);
-        RouterFunction<ServerResponse> routes = route(POST("/api/v1/products"), handler::createProduct);
+        RouterFunction<ServerResponse> routes = route(POST("/api/v1/products"), handler::createProduct)
+                .andRoute(DELETE("/api/v1/products/{id}"), handler::deleteProductById);
         webTestClient = WebTestClient.bindToRouterFunction(routes).build();
+    }
+
+    @Test
+    void shouldDeleteProductById() {
+        UUID productId = UUID.randomUUID();
+        when(validator.validateNotBlank(productId.toString(), "id")).thenReturn(Mono.just(productId.toString()));
+        when(productUseCase.deleteProduct(productId)).thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/api/v1/products/{id}", productId)
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
+    void shouldReturnErrorWhenDeleteIdIsInvalid() {
+        when(validator.validateNotBlank(any(), any())).thenReturn(Mono.error(new IllegalArgumentException("id cannot be null or empty")));
+        when(globalHandlerError.renderError(any(), any())).thenReturn(ServerResponse.badRequest().build());
+
+        webTestClient.delete()
+                .uri("/api/v1/products/{id}", "bad")
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test

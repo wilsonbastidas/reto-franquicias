@@ -29,4 +29,11 @@ public class ObjectValidator {
 
         return Mono.just(object);
     }
+
+    public Mono<String> validateNotBlank(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            return Mono.error(new IllegalArgumentException(fieldName + " cannot be null or empty"));
+        }
+        return Mono.just(value);
+    }
 }

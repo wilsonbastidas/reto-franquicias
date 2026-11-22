@@ -18,4 +18,14 @@ public class ResponseUtils {
         );
         return ServerResponse.status(HttpStatus.CREATED).bodyValue(body);
     }
+
+    public static <T> Mono<ServerResponse> buildDeletedResponse(String message) {
+        ResponseGenericDTO<T> body = new ResponseGenericDTO<>(
+                HttpStatus.NO_CONTENT.value(),
+                message,
+                null,
+                null
+        );
+        return ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(body);
+    }
 }

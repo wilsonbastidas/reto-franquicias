@@ -74,7 +74,46 @@ class ProductRepositoryAdapterTest {
     }
 
     @Test
-    void shouldReturnNullForFindById() {
-        org.assertj.core.api.Assertions.assertThat(adapter.findById("1")).isNull();
+    void shouldFindById() {
+        UUID id = UUID.randomUUID();
+        ProductEntity entity = new ProductEntity();
+        entity.setId(id);
+        Product domain = Product.builder().id(id).name("Producto").build();
+
+        when(productRepository.findById(id)).thenReturn(Mono.just(entity));
+        when(mapper.toDomain(entity)).thenReturn(domain);
+
+        StepVerifier.create(adapter.findById(id))
+                .expectNext(domain)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapFindByIdErrorToPersistenceException() {
+        UUID id = UUID.randomUUID();
+        when(productRepository.findById(id)).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.findById(id))
+                .expectError(PersistenceException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldDeleteById() {
+        UUID id = UUID.randomUUID();
+        when(productRepository.deleteById(id)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.deleteById(id))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapDeleteByIdErrorToPersistenceException() {
+        UUID id = UUID.randomUUID();
+        when(productRepository.deleteById(id)).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.deleteById(id))
+                .expectError(PersistenceException.class)
+                .verify();
     }
 }
