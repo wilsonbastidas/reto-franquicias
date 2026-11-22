@@ -1,8 +1,6 @@
 package co.com.nequi.model.exceptions;
 
-import co.com.nequi.model.franchise.exceptions.TechnicalException;
-
-public class NotFoundException extends TechnicalException {
+public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
         super(message);
     }
