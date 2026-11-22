@@ -1,7 +1,7 @@
 package co.com.nequi.api.config;
 
-import co.com.nequi.api.Handler;
-import co.com.nequi.api.RouterRest;
+import co.com.nequi.api.handler.FranchiseHandler;
+import co.com.nequi.api.FranchiseRouterRest;
 import co.com.nequi.api.dto.FranchiseRequest;
 import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.error.GlobalHandlerError;
@@ -25,7 +25,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {RouterRest.class, Handler.class})
+@ContextConfiguration(classes = {FranchiseRouterRest.class, FranchiseHandler.class})
 @WebFluxTest
 @Import({CorsConfig.class, SecurityHeadersConfig.class})
 class ConfigTest {

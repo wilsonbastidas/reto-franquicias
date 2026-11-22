@@ -1,14 +1,12 @@
-package co.com.nequi.api;
+package co.com.nequi.api.handler;
 
 import co.com.nequi.api.dto.FranchiseRequest;
-import co.com.nequi.api.dto.FranchiseResponse;
-import co.com.nequi.api.dto.ResponseGenericDTO;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.FranchiseMapper;
 import co.com.nequi.api.utils.ObjectValidator;
+import co.com.nequi.api.utils.ResponseUtils;
 import co.com.nequi.usecase.franchise.FranchiseUseCase;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -16,7 +14,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
-public class Handler {
+public class FranchiseHandler {
 
     private final FranchiseUseCase useCase;
     private final FranchiseMapper mapper;
@@ -29,17 +27,8 @@ public class Handler {
                 .map(mapper::toDomain)
                 .flatMap(useCase::createFranchise)
                 .map(mapper::toDTO)
-                .flatMap(this::buildCreatedResponse)
+                .flatMap(response ->
+                        ResponseUtils.buildCreatedResponse(response, "Franchise created successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
-    }
-
-    private Mono<ServerResponse> buildCreatedResponse(FranchiseResponse franchiseResponse) {
-        ResponseGenericDTO<FranchiseResponse> body = new ResponseGenericDTO<>(
-                HttpStatus.CREATED.value(),
-                "Franchise created successfully",
-                franchiseResponse,
-                null
-        );
-        return ServerResponse.status(HttpStatus.CREATED).bodyValue(body);
     }
 }

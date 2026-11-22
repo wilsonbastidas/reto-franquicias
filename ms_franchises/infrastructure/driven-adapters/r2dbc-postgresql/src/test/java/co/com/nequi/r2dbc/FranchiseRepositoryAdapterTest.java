@@ -1,8 +1,10 @@
 package co.com.nequi.r2dbc;
 
+import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.model.franchise.exceptions.PersistenceException;
 import co.com.nequi.r2dbc.entities.FranchiseEntity;
+import co.com.nequi.r2dbc.franchise.FranchiseRepository;
+import co.com.nequi.r2dbc.franchise.FranchiseRepositoryAdapter;
 import co.com.nequi.r2dbc.mapper.FranchiseEntityMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +39,7 @@ class FranchiseRepositoryAdapterTest {
         Franchise franchise = Franchise.builder().name("Franquicia").build();
         FranchiseEntity entity = new FranchiseEntity();
         entity.setName("Franquicia");
-        FranchiseEntity savedEntity = new FranchiseEntity(id, "Franquicia", now, now, false);
+        FranchiseEntity savedEntity = new FranchiseEntity(id, "Franquicia", now, now);
         Franchise savedDomain = Franchise.builder().id(id).name("Franquicia").createdAt(now).updatedAt(now).build();
 
         when(mapper.toEntity(franchise)).thenReturn(entity);
@@ -68,8 +70,8 @@ class FranchiseRepositoryAdapterTest {
         UUID id = UUID.randomUUID();
         LocalDateTime createdAt = LocalDateTime.now().minusDays(1);
         Franchise franchise = Franchise.builder().id(id).name("Franquicia").createdAt(createdAt).build();
-        FranchiseEntity entity = new FranchiseEntity(id, "Franquicia", createdAt, null, false);
-        FranchiseEntity savedEntity = new FranchiseEntity(id, "Franquicia", createdAt, LocalDateTime.now(), false);
+        FranchiseEntity entity = new FranchiseEntity(id, "Franquicia", createdAt, null);
+        FranchiseEntity savedEntity = new FranchiseEntity(id, "Franquicia", createdAt, LocalDateTime.now());
         Franchise savedDomain = Franchise.builder().id(id).name("Franquicia").createdAt(createdAt).updatedAt(savedEntity.getUpdatedAt()).build();
 
         when(mapper.toEntity(franchise)).thenReturn(entity);

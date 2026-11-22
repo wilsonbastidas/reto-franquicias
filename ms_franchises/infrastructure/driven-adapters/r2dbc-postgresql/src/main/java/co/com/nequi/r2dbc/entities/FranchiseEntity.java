@@ -16,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FranchiseEntity implements Persistable<UUID> {
+public class FranchiseEntity {
 
     @Id
     private UUID id;
@@ -29,11 +29,4 @@ public class FranchiseEntity implements Persistable<UUID> {
     @Column("updated_at")
     private LocalDateTime updatedAt;
 
-    @Transient
-    private boolean isNew;
-
-    @Override
-    public boolean isNew() {
-        return isNew || id == null;
-    }
 }

@@ -1,7 +1,7 @@
 package co.com.nequi.usecase.franchise;
 
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.model.franchise.gateways.FranchiseRepositoryGateway;
+import co.com.nequi.model.gateways.FranchiseRepositoryGateway;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
