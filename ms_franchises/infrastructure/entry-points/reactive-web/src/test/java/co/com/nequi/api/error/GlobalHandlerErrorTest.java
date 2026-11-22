@@ -1,7 +1,9 @@
 package co.com.nequi.api.error;
 
+import co.com.nequi.model.exceptions.PersistenceException;
+import co.com.nequi.model.franchise.exceptions.ConflictException;
 import co.com.nequi.model.franchise.exceptions.InvalidMethodException;
-import co.com.nequi.model.franchise.exceptions.PersistenceException;
+import co.com.nequi.model.franchise.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.exceptions.TechnicalException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -15,7 +17,6 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.MethodNotAllowedException;
@@ -97,6 +98,22 @@ class GlobalHandlerErrorTest {
     void shouldRenderResponseStatusException() {
         StepVerifier.create(globalHandlerError.renderError(postRequest(),
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "not found")))
+                .assertNext(response -> assertThat(response.statusCode().value()).isEqualTo(404))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldRenderConflictException() {
+        StepVerifier.create(globalHandlerError.renderError(postRequest(),
+                        new ConflictException("Franchise with name X already exists")))
+                .assertNext(response -> assertThat(response.statusCode().value()).isEqualTo(409))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldRenderNotFoundException() {
+        StepVerifier.create(globalHandlerError.renderError(postRequest(),
+                        new NotFoundException("Franchise not found")))
                 .assertNext(response -> assertThat(response.statusCode().value()).isEqualTo(404))
                 .verifyComplete();
     }

@@ -1,7 +1,9 @@
 
 package co.com.nequi.api.error;
 
+import co.com.nequi.model.franchise.exceptions.ConflictException;
 import co.com.nequi.model.franchise.exceptions.InvalidMethodException;
+import co.com.nequi.model.franchise.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.exceptions.TechnicalException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -91,6 +93,8 @@ public class GlobalHandlerError implements ErrorWebExceptionHandler {
 
     private boolean isKnownException(Throwable ex) {
         return ex instanceof TechnicalException
+                || ex instanceof ConflictException
+                || ex instanceof NotFoundException
                 || ex instanceof InvalidMethodException
                 || ex instanceof ConstraintViolationException
                 || ex instanceof WebExchangeBindException
@@ -127,8 +131,12 @@ public class GlobalHandlerError implements ErrorWebExceptionHandler {
                     buildErrorResponse(Map.of("error", safeMessage(ex.getReason(),"Request failed")),
                             ex.getStatusCode()
                     );
+            case ConflictException ex ->
+                    buildErrorResponse(Map.of("error", safeMessage(ex.getMessage(), "Conflict")), HttpStatus.CONFLICT);
+            case NotFoundException ex ->
+                    buildErrorResponse(Map.of("error", safeMessage(ex.getMessage(), "Resource not found")), HttpStatus.NOT_FOUND);
             case TechnicalException ex ->
-                    buildErrorResponse(Map.of("error", TECHNICAL_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+                    buildErrorResponse(Map.of("error", safeMessage(ex.getMessage(), TECHNICAL_ERROR)), HttpStatus.INTERNAL_SERVER_ERROR);
             default -> buildErrorResponse(Map.of("error", GENERIC_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         };
     }
