@@ -54,4 +54,15 @@ public class ProductHandler {
                         ResponseUtils.buildCreatedResponse(response, "Product stock updated successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
+
+    public Mono<ServerResponse> getMaxStockProductsByFranchise(ServerRequest request) {
+        String franchiseId = request.pathVariable("franchiseId");
+        return validator.validateNotBlank(franchiseId, "franchiseId")
+                .map(UUID::fromString)
+                .flatMapMany(productUseCase::getMaxStockProductsByFranchise)
+                .map(productMapper::toResponse)
+                .collectList()
+                .flatMap(products -> ResponseUtils.buildOkResponse(products, "Products with max stock by branch retrieved successfully"))
+                .onErrorResume(e -> globalHandlerError.renderError(request, e));
+    }
 }
