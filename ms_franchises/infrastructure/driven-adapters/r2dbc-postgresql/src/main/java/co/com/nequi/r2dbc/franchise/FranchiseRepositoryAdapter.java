@@ -44,4 +44,12 @@ public class FranchiseRepositoryAdapter implements FranchiseRepositoryGateway {
                 .map(mapper::toDomain)
                 .onErrorMap(throwable -> new PersistenceException("Error finding franchise", throwable));
     }
+
+    @Override
+    public Mono<Franchise> update(Franchise franchise) {
+        FranchiseEntity entity = mapper.toEntity(franchise);
+        return franchiseRepository.save(entity)
+                .map(mapper::toDomain)
+                .onErrorMap(error -> new PersistenceException("Error updating franchise", error));
+    }
 }

@@ -152,4 +152,58 @@ class ProductUseCaseTest {
                 .expectError(NotFoundException.class)
                 .verify();
     }
+
+    @Test
+    void shouldUpdateProductNameWhenExists() {
+        UUID productId = UUID.randomUUID();
+        Product existing = Product.builder().id(productId).name("Old").stock(BigDecimal.ONE).build();
+        Product updated = Product.builder().id(productId).name("New").stock(BigDecimal.ONE).build();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.just(existing));
+        when(productRepository.findByName("New")).thenReturn(Mono.empty());
+        when(productRepository.update(any(Product.class))).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(productUseCase.updateProductName(productId, "New"))
+                .expectNext(updated)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdatingProductNameNonExisting() {
+        UUID productId = UUID.randomUUID();
+        when(productRepository.findById(productId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(productUseCase.updateProductName(productId, "New"))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldReturnConflictWhenUpdatingProductNameAlreadyExists() {
+        UUID productId = UUID.randomUUID();
+        Product existing = Product.builder().id(productId).name("Old").build();
+        Product other = Product.builder().id(UUID.randomUUID()).name("New").build();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.just(existing));
+        when(productRepository.findByName("New")).thenReturn(Mono.just(other));
+
+        StepVerifier.create(productUseCase.updateProductName(productId, "New"))
+                .expectError(ConflictException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldUpdateProductNameWhenSameNameBelongsToSameProduct() {
+        UUID productId = UUID.randomUUID();
+        Product existing = Product.builder().id(productId).name("Same").stock(BigDecimal.ONE).build();
+        Product updated = Product.builder().id(productId).name("Same").stock(BigDecimal.ONE).build();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.just(existing));
+        when(productRepository.findByName("Same")).thenReturn(Mono.just(existing));
+        when(productRepository.update(any(Product.class))).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(productUseCase.updateProductName(productId, "Same"))
+                .expectNext(updated)
+                .verifyComplete();
+    }
 }

@@ -9,4 +9,5 @@ public interface BranchRepositoryGateway {
     Mono<Branch> save(Branch branch);
     Mono<Branch> findById(UUID id);
     Mono<Branch> findByName(String name);
+    Mono<Branch> update(Branch branch);
 }

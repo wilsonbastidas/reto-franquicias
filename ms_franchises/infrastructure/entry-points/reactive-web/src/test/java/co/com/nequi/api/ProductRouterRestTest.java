@@ -5,6 +5,7 @@ import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.dto.ProductRequest;
 import co.com.nequi.api.dto.ProductResponse;
 import co.com.nequi.api.dto.StockProductRequest;
+import co.com.nequi.api.dto.UpdateProductNameRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.handler.ProductHandler;
 import co.com.nequi.api.mapper.ProductMapper;
@@ -73,6 +74,32 @@ class ProductRouterRestTest {
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(201)
                 .jsonPath("$.data.stock").isEqualTo(10);
+    }
+
+    @Test
+    void shouldRouteUpdateProductName() {
+        UUID productId = UUID.randomUUID();
+        UUID branchId = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        UpdateProductNameRequest request = new UpdateProductNameRequest(productId, "Nuevo");
+        Product updated = Product.builder().id(productId).name("Nuevo").stock(BigDecimal.TEN).build();
+        BranchResponse branchResponse = new BranchResponse(branchId, "Sucursal", new FranchiseResponse(UUID.randomUUID().toString(), "Franquicia", now), now);
+        ProductResponse response = new ProductResponse(productId, "Nuevo", BigDecimal.TEN, branchResponse);
+
+        when(validator.validate(any(UpdateProductNameRequest.class))).thenReturn(Mono.just(request));
+        when(productUseCase.updateProductName(productId, "Nuevo")).thenReturn(Mono.just(updated));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/products/update-name")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.message").isEqualTo("Product name updated successfully")
+                .jsonPath("$.data.name").isEqualTo("Nuevo");
     }
 
     @Test

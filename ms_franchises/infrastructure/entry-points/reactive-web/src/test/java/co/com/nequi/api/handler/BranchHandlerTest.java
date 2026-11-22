@@ -2,6 +2,7 @@ package co.com.nequi.api.handler;
 
 import co.com.nequi.api.dto.BranchRequest;
 import co.com.nequi.api.dto.BranchResponse;
+import co.com.nequi.api.dto.UpdateBranchNameRequest;
 import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.BranchMapper;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.web.reactive.function.server.RequestPredicates.PATCH;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -44,7 +46,8 @@ class BranchHandlerTest {
     @BeforeEach
     void setUp() {
         BranchHandler handler = new BranchHandler(branchUseCase, mapper, validator, globalHandlerError);
-        RouterFunction<ServerResponse> routes = route(POST("/api/v1/branches"), handler::createBranch);
+        RouterFunction<ServerResponse> routes = route(POST("/api/v1/branches"), handler::createBranch)
+                .andRoute(PATCH("/api/v1/branches/update-name"), handler::updateBranchName);
         webTestClient = WebTestClient.bindToRouterFunction(routes).build();
     }
 
@@ -73,5 +76,29 @@ class BranchHandlerTest {
                 .jsonPath("$.message").isEqualTo("Branch created successfully")
                 .jsonPath("$.data.name").isEqualTo("Sucursal")
                 .jsonPath("$.data.franchise.name").isEqualTo("Franquicia");
+    }
+
+    @Test
+    void shouldUpdateBranchName() {
+        UUID branchId = UUID.randomUUID();
+        UUID franchiseId = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        UpdateBranchNameRequest request = new UpdateBranchNameRequest(branchId, "Nuevo");
+        Branch updated = Branch.builder().id(branchId).name("Nuevo").franchise(Franchise.builder().id(franchiseId).name("Franquicia").build()).createdAt(now).build();
+        BranchResponse response = new BranchResponse(branchId, "Nuevo", new FranchiseResponse(franchiseId.toString(), "Franquicia", now), now);
+
+        when(validator.validate(any(UpdateBranchNameRequest.class))).thenReturn(Mono.just(request));
+        when(branchUseCase.updateBranchName(branchId, "Nuevo")).thenReturn(Mono.just(updated));
+        when(mapper.toResponse(any(Branch.class))).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/update-name")
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.message").isEqualTo("Branch name updated successfully")
+                .jsonPath("$.data.name").isEqualTo("Nuevo");
     }
 }

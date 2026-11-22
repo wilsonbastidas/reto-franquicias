@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.PATCH;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -14,6 +15,7 @@ public class FranchiseRouterRest {
 
     @Bean
     public RouterFunction<ServerResponse> franchiseRouterFunction(FranchiseHandler handler) {
-        return route(POST("/api/v1/franchise"), handler::createFranchise);
+        return route(POST("/api/v1/franchise"), handler::createFranchise)
+                .andRoute(PATCH("/api/v1/franchise/update-name"), handler::updateFranchiseName);
     }
 }

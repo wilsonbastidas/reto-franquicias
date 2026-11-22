@@ -2,6 +2,7 @@ package co.com.nequi.api;
 
 import co.com.nequi.api.dto.FranchiseRequest;
 import co.com.nequi.api.dto.FranchiseResponse;
+import co.com.nequi.api.dto.UpdateFranchiseNameRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.handler.FranchiseHandler;
 import co.com.nequi.api.mapper.FranchiseMapper;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {FranchiseRouterRest.class, FranchiseHandler.class})
 @WebFluxTest
-class RouterRestTest {
+class FranchiseRouterRestTest {
 
     @Autowired
     private WebTestClient webTestClient;
@@ -71,5 +72,28 @@ class RouterRestTest {
                 .jsonPath("$.statusCode").isEqualTo(201)
                 .jsonPath("$.message").isEqualTo("Franchise created successfully")
                 .jsonPath("$.data.name").isEqualTo("Franquicia Centro");
+    }
+
+    @Test
+    void updateFranchiseNameShouldReturnOk() {
+        UUID id = UUID.randomUUID();
+        UpdateFranchiseNameRequest request = new UpdateFranchiseNameRequest(id, "Nuevo Nombre");
+        Franchise updated = Franchise.builder().id(id).name("Nuevo Nombre").createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).build();
+        FranchiseResponse response = new FranchiseResponse(id.toString(), "Nuevo Nombre", updated.getCreatedAt());
+
+        when(validator.validate(any(UpdateFranchiseNameRequest.class))).thenReturn(Mono.just(request));
+        when(useCase.updateFranchiseName(id, "Nuevo Nombre")).thenReturn(Mono.just(updated));
+        when(mapper.toDTO(any(Franchise.class))).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/franchise/update-name")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.message").isEqualTo("Franchise name updated successfully")
+                .jsonPath("$.data.name").isEqualTo("Nuevo Nombre");
     }
 }

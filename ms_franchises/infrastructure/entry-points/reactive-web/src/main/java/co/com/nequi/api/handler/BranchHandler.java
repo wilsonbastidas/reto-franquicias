@@ -1,6 +1,7 @@
 package co.com.nequi.api.handler;
 
 import co.com.nequi.api.dto.BranchRequest;
+import co.com.nequi.api.dto.UpdateBranchNameRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.BranchMapper;
 import co.com.nequi.api.utils.ObjectValidator;
@@ -30,5 +31,14 @@ public class BranchHandler {
                 .flatMap(response ->
                         ResponseUtils.buildCreatedResponse(response, "Branch created successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(serverRequest, e));
+    }
+
+    public Mono<ServerResponse> updateBranchName(ServerRequest request) {
+        return request.bodyToMono(UpdateBranchNameRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> branchUseCase.updateBranchName(req.id(), req.name()))
+                .map(mapper::toResponse)
+                .flatMap(response -> ResponseUtils.buildOkResponse(response, "Branch name updated successfully"))
+                .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 }

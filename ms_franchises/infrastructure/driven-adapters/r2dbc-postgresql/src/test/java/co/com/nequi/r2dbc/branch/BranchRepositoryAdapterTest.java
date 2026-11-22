@@ -119,4 +119,42 @@ class BranchRepositoryAdapterTest {
                 .expectError(PersistenceException.class)
                 .verify();
     }
+
+    @Test
+    void shouldUpdateBranchSuccessfully() {
+        UUID franchiseId = UUID.randomUUID();
+        UUID branchId = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        Franchise franchise = Franchise.builder().id(franchiseId).name("Franquicia").build();
+        Branch branch = Branch.builder().id(branchId).name("New").franchise(franchise).build();
+        BranchEntity entity = new BranchEntity();
+        entity.setId(branchId);
+        entity.setName("New");
+        BranchEntity savedEntity = new BranchEntity(branchId, "New", franchiseId, now, now);
+        Branch mapped = Branch.builder().id(branchId).name("New").build();
+
+        when(branchEntityMapper.toEntity(branch)).thenReturn(entity);
+        when(branchRepository.save(entity)).thenReturn(Mono.just(savedEntity));
+        when(branchEntityMapper.toDomain(savedEntity)).thenReturn(mapped);
+
+        StepVerifier.create(adapter.update(branch))
+                .assertNext(result -> {
+                    assert result.getName().equals("New");
+                    assert result.getFranchise().getId().equals(franchiseId);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapUpdateErrorToPersistenceException() {
+        Branch branch = Branch.builder().id(UUID.randomUUID()).name("New").build();
+        BranchEntity entity = new BranchEntity();
+
+        when(branchEntityMapper.toEntity(branch)).thenReturn(entity);
+        when(branchRepository.save(entity)).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.update(branch))
+                .expectError(PersistenceException.class)
+                .verify();
+    }
 }
