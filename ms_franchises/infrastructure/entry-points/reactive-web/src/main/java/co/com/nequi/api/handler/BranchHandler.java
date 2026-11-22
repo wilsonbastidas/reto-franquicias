@@ -5,7 +5,7 @@ import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.BranchMapper;
 import co.com.nequi.api.utils.ObjectValidator;
 import co.com.nequi.api.utils.ResponseUtils;
-import co.com.nequi.usecase.franchise.BranchUseCase;
+import co.com.nequi.usecase.branch.BranchUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;

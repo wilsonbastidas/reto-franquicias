@@ -5,6 +5,7 @@ import co.com.nequi.model.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.model.gateways.BranchRepositoryGateway;
 import co.com.nequi.model.gateways.FranchiseRepositoryGateway;
+import co.com.nequi.usecase.branch.BranchUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

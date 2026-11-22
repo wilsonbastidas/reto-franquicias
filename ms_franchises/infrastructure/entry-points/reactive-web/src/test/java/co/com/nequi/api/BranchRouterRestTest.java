@@ -9,7 +9,7 @@ import co.com.nequi.api.mapper.BranchMapper;
 import co.com.nequi.api.utils.ObjectValidator;
 import co.com.nequi.model.branch.Branch;
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.usecase.franchise.BranchUseCase;
+import co.com.nequi.usecase.branch.BranchUseCase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;

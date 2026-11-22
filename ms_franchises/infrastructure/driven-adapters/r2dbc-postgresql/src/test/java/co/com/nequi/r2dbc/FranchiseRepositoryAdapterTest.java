@@ -2,7 +2,7 @@ package co.com.nequi.r2dbc;
 
 import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.model.franchise.exceptions.ConflictException;
+import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.r2dbc.entities.FranchiseEntity;
 import co.com.nequi.r2dbc.franchise.FranchiseRepository;
 import co.com.nequi.r2dbc.franchise.FranchiseRepositoryAdapter;

@@ -3,7 +3,7 @@ package co.com.nequi.r2dbc.branch;
 import co.com.nequi.model.branch.Branch;
 import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
-import co.com.nequi.model.franchise.exceptions.ConflictException;
+import co.com.nequi.model.exceptions.ConflictException;
 import co.com.nequi.r2dbc.entities.BranchEntity;
 import co.com.nequi.r2dbc.mapper.BranchEntityMapper;
 import org.junit.jupiter.api.Test;
