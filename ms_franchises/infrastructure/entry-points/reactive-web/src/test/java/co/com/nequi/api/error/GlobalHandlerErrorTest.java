@@ -1,9 +1,9 @@
 package co.com.nequi.api.error;
 
 import co.com.nequi.model.exceptions.PersistenceException;
-import co.com.nequi.model.franchise.exceptions.ConflictException;
+import co.com.nequi.model.exceptions.ConflictException;
+import co.com.nequi.model.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.exceptions.InvalidMethodException;
-import co.com.nequi.model.franchise.exceptions.NotFoundException;
 import co.com.nequi.model.franchise.exceptions.TechnicalException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

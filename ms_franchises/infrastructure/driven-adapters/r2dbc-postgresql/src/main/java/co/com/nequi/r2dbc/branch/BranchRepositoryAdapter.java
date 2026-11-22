@@ -2,7 +2,6 @@ package co.com.nequi.r2dbc.branch;
 
 import co.com.nequi.model.branch.Branch;
 import co.com.nequi.model.exceptions.PersistenceException;
-import co.com.nequi.model.franchise.exceptions.ConflictException;
 import co.com.nequi.model.gateways.BranchRepositoryGateway;
 import co.com.nequi.r2dbc.entities.BranchEntity;
 import co.com.nequi.r2dbc.mapper.BranchEntityMapper;
@@ -29,26 +28,25 @@ public class BranchRepositoryAdapter implements BranchRepositoryGateway {
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
 
-        return branchRepository.findByName(entity.getName())
-                .hasElement()
-                .flatMap(exists -> {
-                    if (exists) {
-                        return Mono.error(new ConflictException("Branch with name " + entity.getName() + " already exists"));
-                    }
-                    return branchRepository.save(entity)
-                            .map(saved -> {
-                                Branch savedBranch = branchEntityMapper.toDomain(saved);
-                                savedBranch.setFranchise(branch.getFranchise());
-                                return savedBranch;
-                            })
-                            .onErrorMap(throwable -> new PersistenceException("Error saving branch", throwable));
-                });
-
+        return branchRepository.save(entity)
+                .map(saved -> {
+                    Branch savedBranch = branchEntityMapper.toDomain(saved);
+                    savedBranch.setFranchise(branch.getFranchise());
+                    return savedBranch;
+                })
+                .onErrorMap(throwable -> new PersistenceException("Error saving branch", throwable));
     }
 
     @Override
     public Mono<Branch> findById(UUID id) {
         return branchRepository.findById(id)
+                .map(branchEntityMapper::toDomain)
+                .onErrorMap(throwable -> new PersistenceException("Error finding branch", throwable));
+    }
+
+    @Override
+    public Mono<Branch> findByName(String name) {
+        return branchRepository.findByName(name)
                 .map(branchEntityMapper::toDomain)
                 .onErrorMap(throwable -> new PersistenceException("Error finding branch", throwable));
     }

@@ -9,4 +9,5 @@ public interface FranchiseRepositoryGateway {
 
     Mono<Franchise> save(Franchise franchise);
     Mono<Franchise> findById(UUID id);
+    Mono<Franchise> findByName(String name);
 }

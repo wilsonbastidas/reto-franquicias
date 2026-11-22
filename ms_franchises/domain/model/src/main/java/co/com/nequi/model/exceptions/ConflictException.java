@@ -1,4 +1,4 @@
-package co.com.nequi.model.franchise.exceptions;
+package co.com.nequi.model.exceptions;
 
 public class ConflictException extends RuntimeException {
 
