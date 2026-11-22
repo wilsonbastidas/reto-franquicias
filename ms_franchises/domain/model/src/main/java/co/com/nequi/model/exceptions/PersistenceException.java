@@ -1,4 +1,6 @@
-package co.com.nequi.model.franchise.exceptions;
+package co.com.nequi.model.exceptions;
+
+import co.com.nequi.model.franchise.exceptions.TechnicalException;
 
 public class PersistenceException extends TechnicalException {
 

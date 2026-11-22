@@ -3,6 +3,7 @@ package co.com.nequi.api;
 import co.com.nequi.api.dto.FranchiseRequest;
 import co.com.nequi.api.dto.FranchiseResponse;
 import co.com.nequi.api.error.GlobalHandlerError;
+import co.com.nequi.api.handler.FranchiseHandler;
 import co.com.nequi.api.mapper.FranchiseMapper;
 import co.com.nequi.api.utils.ObjectValidator;
 import co.com.nequi.model.franchise.Franchise;
@@ -23,7 +24,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {RouterRest.class, Handler.class})
+@ContextConfiguration(classes = {FranchiseRouterRest.class, FranchiseHandler.class})
 @WebFluxTest
 class RouterRestTest {
 
