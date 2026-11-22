@@ -57,4 +57,13 @@ public class ProductRepositoryAdapter implements ProductRepositoryGateway {
         return productRepository.deleteById(id)
                 .onErrorMap(e -> new PersistenceException("Error deleting product", e));
     }
+
+    @Override
+    public Mono<Product> update(Product product) {
+        ProductEntity entity = mapper.toEntity(product);
+        entity.setBranchId(product.getBranch().getId());
+        return productRepository.save(entity)
+                .map(mapper::toDomain)
+                .onErrorMap(e -> new PersistenceException("Error updating product", e));
+    }
 }

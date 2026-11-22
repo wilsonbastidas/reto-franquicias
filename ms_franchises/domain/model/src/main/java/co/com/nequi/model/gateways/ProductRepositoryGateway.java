@@ -11,4 +11,5 @@ public interface ProductRepositoryGateway {
     Mono<Product> findById(UUID id);
     Mono<Product> findByName(String name);
     Mono<Void> deleteById(UUID id);
+    Mono<Product> update(Product product);
 }

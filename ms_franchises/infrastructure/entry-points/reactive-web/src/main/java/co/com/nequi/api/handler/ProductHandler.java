@@ -1,6 +1,7 @@
 package co.com.nequi.api.handler;
 
 import co.com.nequi.api.dto.ProductRequest;
+import co.com.nequi.api.dto.StockProductRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.ProductMapper;
 import co.com.nequi.api.utils.ObjectValidator;
@@ -40,6 +41,17 @@ public class ProductHandler {
                 .map(UUID::fromString)
                 .flatMap(productUseCase::deleteProduct)
                 .then(ResponseUtils.buildDeletedResponse("Product deleted successfully"))
+                .onErrorResume(e -> globalHandlerError.renderError(request, e));
+    }
+
+    public Mono<ServerResponse> updateStockProduct(ServerRequest request) {
+        return request.bodyToMono(StockProductRequest.class)
+                .flatMap(validator::validate)
+                .map(productMapper::toDomainFromStockRequest)
+                .flatMap(productUseCase::updateStockProduct)
+                .map(productMapper::toResponse)
+                .flatMap(response ->
+                        ResponseUtils.buildCreatedResponse(response, "Product stock updated successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 }

@@ -8,6 +8,7 @@ import co.com.nequi.model.product.Product;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -37,5 +38,15 @@ public class ProductUseCase {
         return productRepository.findById(productId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Product not found")))
                 .flatMap(product -> productRepository.deleteById(productId));
+    }
+
+    public Mono<Product> updateStockProduct(Product product) {
+        return productRepository.findById(product.getId())
+                .switchIfEmpty(Mono.error(new NotFoundException("Product not found")))
+                .flatMap(existingProduct -> {
+                    existingProduct.setStock(product.getStock());
+                    existingProduct.setUpdatedAt(LocalDateTime.now());
+                    return productRepository.update(existingProduct);
+                });
     }
 }
