@@ -3,6 +3,7 @@ package co.com.nequi.api.mapper;
 
 import co.com.nequi.api.dto.ProductRequest;
 import co.com.nequi.api.dto.ProductResponse;
+import co.com.nequi.api.dto.StockProductRequest;
 import co.com.nequi.model.product.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,4 +16,6 @@ public interface ProductMapper {
     Product toDomain(ProductRequest productRequest);
 
     ProductResponse toResponse(Product product);
+
+    Product toDomainFromStockRequest(StockProductRequest stockProductRequest);
 }

@@ -11,5 +11,6 @@ public interface ProductEntityMapper {
     @Mapping(target = "branchId", source = "branch.id")
     ProductEntity toEntity(Product product);
 
+    @Mapping(target = "branch.id", source = "branchId")
     Product toDomain(ProductEntity productEntity);
 }

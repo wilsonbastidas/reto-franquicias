@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -18,4 +19,6 @@ public class Product {
     private String name;
     private BigDecimal stock;
     private Branch branch;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
