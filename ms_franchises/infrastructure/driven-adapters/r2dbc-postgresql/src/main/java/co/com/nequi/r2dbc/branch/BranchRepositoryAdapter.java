@@ -50,4 +50,16 @@ public class BranchRepositoryAdapter implements BranchRepositoryGateway {
                 .map(branchEntityMapper::toDomain)
                 .onErrorMap(throwable -> new PersistenceException("Error finding branch", throwable));
     }
+
+    @Override
+    public Mono<Branch> update(Branch branch) {
+        BranchEntity entity = branchEntityMapper.toEntity(branch);
+        return branchRepository.save(entity)
+                .map(saved -> {
+                    Branch updatedBranch = branchEntityMapper.toDomain(saved);
+                    updatedBranch.setFranchise(branch.getFranchise());
+                    return updatedBranch;
+                })
+                .onErrorMap(throwable -> new PersistenceException("Error updating branch", throwable));
+    }
 }

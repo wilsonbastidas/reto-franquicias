@@ -1,6 +1,7 @@
 package co.com.nequi.api.handler;
 
 import co.com.nequi.api.dto.FranchiseRequest;
+import co.com.nequi.api.dto.UpdateFranchiseNameRequest;
 import co.com.nequi.api.error.GlobalHandlerError;
 import co.com.nequi.api.mapper.FranchiseMapper;
 import co.com.nequi.api.utils.ObjectValidator;
@@ -29,6 +30,16 @@ public class FranchiseHandler {
                 .map(mapper::toDTO)
                 .flatMap(response ->
                         ResponseUtils.buildCreatedResponse(response, "Franchise created successfully"))
+                .onErrorResume(e -> globalHandlerError.renderError(request, e));
+    }
+
+    public Mono<ServerResponse> updateFranchiseName(ServerRequest request) {
+        return request.bodyToMono(UpdateFranchiseNameRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> useCase.updateFranchiseName(req.id(), req.name()))
+                .map(mapper::toDTO)
+                .flatMap(response ->
+                        ResponseUtils.buildOkResponse(response, "Franchise name updated successfully"))
                 .onErrorResume(e -> globalHandlerError.renderError(request, e));
     }
 }

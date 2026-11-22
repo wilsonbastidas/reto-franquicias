@@ -18,6 +18,8 @@ public class ProductRouterRest {
         return route(POST("/api/v1/products"), handler::createProduct)
                 .andRoute(DELETE("/api/v1/products/{id}"), handler::deleteProductById)
                 .andRoute(PATCH("/api/v1/products/update-stock"), handler::updateStockProduct)
-                .andRoute(GET("/api/v1/franchises/{franchiseId}/products/max-stock"), handler::getMaxStockProductsByFranchise);
+                .andRoute(GET("/api/v1/franchises/{franchiseId}/products/max-stock"),
+                        handler::getMaxStockProductsByFranchise)
+                .andRoute(PATCH("/api/v1/products/update-name"), handler::updateProductName);
     }
 }

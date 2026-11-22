@@ -52,4 +52,58 @@ class FranchiseUseCaseTest {
                 .expectError(ConflictException.class)
                 .verify();
     }
+
+    @Test
+    void shouldUpdateFranchiseNameWhenExists() {
+        UUID id = UUID.randomUUID();
+        Franchise existing = Franchise.builder().id(id).name("Old").build();
+        Franchise updated = Franchise.builder().id(id).name("New").build();
+
+        when(franchiseRepository.findById(id)).thenReturn(Mono.just(existing));
+        when(franchiseRepository.findByName("New")).thenReturn(Mono.empty());
+        when(franchiseRepository.update(any(Franchise.class))).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(useCase.updateFranchiseName(id, "New"))
+                .expectNext(updated)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdatingFranchiseName() {
+        UUID id = UUID.randomUUID();
+        when(franchiseRepository.findById(id)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateFranchiseName(id, "New"))
+                .expectError(co.com.nequi.model.exceptions.NotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldReturnConflictWhenUpdatingFranchiseNameExists() {
+        UUID id = UUID.randomUUID();
+        Franchise existing = Franchise.builder().id(id).name("Old").build();
+        Franchise other = Franchise.builder().id(UUID.randomUUID()).name("New").build();
+
+        when(franchiseRepository.findById(id)).thenReturn(Mono.just(existing));
+        when(franchiseRepository.findByName("New")).thenReturn(Mono.just(other));
+
+        StepVerifier.create(useCase.updateFranchiseName(id, "New"))
+                .expectError(ConflictException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldUpdateFranchiseNameWhenSameNameBelongsToSameFranchise() {
+        UUID id = UUID.randomUUID();
+        Franchise existing = Franchise.builder().id(id).name("Same").build();
+        Franchise updated = Franchise.builder().id(id).name("Same").build();
+
+        when(franchiseRepository.findById(id)).thenReturn(Mono.just(existing));
+        when(franchiseRepository.findByName("Same")).thenReturn(Mono.just(existing));
+        when(franchiseRepository.update(any(Franchise.class))).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(useCase.updateFranchiseName(id, "Same"))
+                .expectNext(updated)
+                .verifyComplete();
+    }
 }

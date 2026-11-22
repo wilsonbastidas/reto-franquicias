@@ -58,4 +58,23 @@ public class ProductUseCase {
                 .switchIfEmpty(Mono.error(new NotFoundException("Franchise not found")))
                 .flatMapMany(franchise -> productRepository.findMaxStockByFranchiseId(franchiseId));
     }
+
+    public Mono<Product> updateProductName(UUID id, String name) {
+        return productRepository.findById(id)
+                .switchIfEmpty(Mono.error(new NotFoundException("Product not found")))
+                .flatMap(existing -> productRepository.findByName(name)
+                        .flatMap(found -> {
+                            if (!found.getId().equals(id)) {
+                                return Mono.error(new ConflictException("Product with name " + name + " already exists"));
+                            }
+                            return Mono.just(existing);
+                        })
+                        .defaultIfEmpty(existing)
+                        .flatMap(product -> {
+                            product.setName(name);
+                            product.setUpdatedAt(LocalDateTime.now());
+                            return productRepository.update(product);
+                        })
+                );
+    }
 }

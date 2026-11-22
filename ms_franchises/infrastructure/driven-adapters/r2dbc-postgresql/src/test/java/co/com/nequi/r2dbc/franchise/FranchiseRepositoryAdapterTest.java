@@ -1,10 +1,8 @@
-package co.com.nequi.r2dbc;
+package co.com.nequi.r2dbc.franchise;
 
 import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.r2dbc.entities.FranchiseEntity;
-import co.com.nequi.r2dbc.franchise.FranchiseRepository;
-import co.com.nequi.r2dbc.franchise.FranchiseRepositoryAdapter;
 import co.com.nequi.r2dbc.mapper.FranchiseEntityMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,6 +107,39 @@ class FranchiseRepositoryAdapterTest {
         when(franchiseRepository.findByName("Franquicia")).thenReturn(Mono.error(new RuntimeException("db error")));
 
         StepVerifier.create(adapter.findByName("Franquicia"))
+                .expectError(PersistenceException.class)
+                .verify();
+    }
+
+    @Test
+    void shouldUpdateFranchiseSuccessfully() {
+        UUID id = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        Franchise franchise = Franchise.builder().id(id).name("New").build();
+        FranchiseEntity entity = new FranchiseEntity();
+        entity.setId(id);
+        entity.setName("New");
+        FranchiseEntity savedEntity = new FranchiseEntity(id, "New", now, now);
+        Franchise updated = Franchise.builder().id(id).name("New").build();
+
+        when(mapper.toEntity(franchise)).thenReturn(entity);
+        when(franchiseRepository.save(entity)).thenReturn(Mono.just(savedEntity));
+        when(mapper.toDomain(savedEntity)).thenReturn(updated);
+
+        StepVerifier.create(adapter.update(franchise))
+                .expectNext(updated)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldMapUpdateErrorToPersistenceException() {
+        Franchise franchise = Franchise.builder().id(UUID.randomUUID()).name("New").build();
+        FranchiseEntity entity = new FranchiseEntity();
+
+        when(mapper.toEntity(franchise)).thenReturn(entity);
+        when(franchiseRepository.save(entity)).thenReturn(Mono.error(new RuntimeException("db error")));
+
+        StepVerifier.create(adapter.update(franchise))
                 .expectError(PersistenceException.class)
                 .verify();
     }
