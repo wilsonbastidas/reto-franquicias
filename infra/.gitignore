@@ -1,2 +1,12 @@
 # Variables de entorno locales (credenciales)
 .env
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars.local
+.terraformrc
+terraform.rc
