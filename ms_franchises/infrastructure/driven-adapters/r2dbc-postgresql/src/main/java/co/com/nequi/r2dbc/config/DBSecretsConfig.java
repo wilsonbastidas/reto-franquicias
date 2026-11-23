@@ -39,11 +39,13 @@ public class DBSecretsConfig {
     }
 
     private AWSSecretsManagerConfig getConfig() {
-        return AWSSecretsManagerConfig.builder()
+        AWSSecretsManagerConfig.AWSSecretsManagerConfigBuilder builder = AWSSecretsManagerConfig.builder()
                 .region(Region.of(region))
-                .endpoint(endpoint)
                 .cacheSize(SECRET_CACHE_SIZE)
-                .cacheSeconds(SECRET_CACHE_SECONDS)
-                .build();
+                .cacheSeconds(SECRET_CACHE_SECONDS);
+        if (endpoint != null && !endpoint.isBlank()) {
+            builder.endpoint(endpoint);
+        }
+        return builder.build();
     }
 }
