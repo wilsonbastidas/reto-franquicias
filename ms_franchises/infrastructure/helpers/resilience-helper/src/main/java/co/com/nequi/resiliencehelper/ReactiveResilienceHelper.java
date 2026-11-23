@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 @Component
 public class ReactiveResilienceHelper {
@@ -27,7 +29,7 @@ public class ReactiveResilienceHelper {
 
     public ReactiveResilienceHelper() {
         CircuitBreakerConfig cbConfig = CircuitBreakerConfig.custom()
-                .failureRateThreshold(50)
+                .failureRateThreshold(50) // Percentage of failures to open the circuit
                 .slowCallRateThreshold(50)
                 .slowCallDurationThreshold(Duration.ofSeconds(2))
                 .waitDurationInOpenState(Duration.ofSeconds(10))
@@ -39,7 +41,7 @@ public class ReactiveResilienceHelper {
         RetryConfig retryConfig = RetryConfig.custom()
                 .maxAttempts(3)
                 .waitDuration(Duration.ofMillis(300))
-                .retryExceptions(Exception.class)
+                .retryExceptions(Exception.class, IOException.class, TimeoutException.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
 
