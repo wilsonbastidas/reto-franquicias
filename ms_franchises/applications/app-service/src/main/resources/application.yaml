@@ -20,9 +20,9 @@ management:
 aws:
   region: "us-east-1"
   rds:
-    secret-name: "franchises/db-credentials"
+    secret-name: "${RDS_SECRET_NAME}:franchises/db-credentials"
   secret:
-    endpoint: "http://localhost:4566"
+    endpoint: "${SECRET_ENDPOINT}:http://localhost:4566"
 
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"

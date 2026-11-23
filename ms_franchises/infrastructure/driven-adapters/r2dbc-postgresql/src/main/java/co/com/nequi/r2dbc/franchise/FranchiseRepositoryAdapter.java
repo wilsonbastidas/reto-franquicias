@@ -5,6 +5,7 @@ import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.model.gateways.FranchiseRepositoryGateway;
 import co.com.nequi.r2dbc.entities.FranchiseEntity;
 import co.com.nequi.r2dbc.mapper.FranchiseEntityMapper;
+import co.com.nequi.resiliencehelper.ReactiveResilienceHelper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
@@ -16,40 +17,52 @@ public class FranchiseRepositoryAdapter implements FranchiseRepositoryGateway {
 
     private final FranchiseRepository franchiseRepository;
     private final FranchiseEntityMapper mapper;
+    private final ReactiveResilienceHelper resilienceHelper;
 
-    public FranchiseRepositoryAdapter(FranchiseRepository franchiseRepository, FranchiseEntityMapper mapper) {
+    public FranchiseRepositoryAdapter(FranchiseRepository franchiseRepository,
+                                      FranchiseEntityMapper mapper,
+                                      ReactiveResilienceHelper resilienceHelper) {
         this.franchiseRepository = franchiseRepository;
         this.mapper = mapper;
+        this.resilienceHelper = resilienceHelper;
     }
 
     @Override
     public Mono<Franchise> save(Franchise franchise) {
         FranchiseEntity entity = mapper.toEntity(franchise);
         entity.setCreatedAt(LocalDateTime.now());
-        return franchiseRepository.save(entity)
-                .map(mapper::toDomain)
-                .onErrorMap(error -> new PersistenceException("Error saving franchise", error));
+        return resilienceHelper.protectMono(
+                franchiseRepository.save(entity)
+                        .map(mapper::toDomain),
+                "franchise-save"
+        ).onErrorMap(error -> new PersistenceException("Error saving franchise", error));
     }
 
     @Override
     public Mono<Franchise> findById(UUID id) {
-        return franchiseRepository.findById(id)
-                .map(mapper::toDomain)
-                .onErrorMap(throwable -> new PersistenceException("Error finding franchise", throwable));
+        return resilienceHelper.protectMono(
+                franchiseRepository.findById(id)
+                        .map(mapper::toDomain),
+                "franchise-findById"
+        ).onErrorMap(throwable -> new PersistenceException("Error finding franchise", throwable));
     }
 
     @Override
     public Mono<Franchise> findByName(String name) {
-        return franchiseRepository.findByName(name)
-                .map(mapper::toDomain)
-                .onErrorMap(throwable -> new PersistenceException("Error finding franchise", throwable));
+        return resilienceHelper.protectMono(
+                franchiseRepository.findByName(name)
+                        .map(mapper::toDomain),
+                "franchise-findByName"
+        ).onErrorMap(throwable -> new PersistenceException("Error finding franchise", throwable));
     }
 
     @Override
     public Mono<Franchise> update(Franchise franchise) {
         FranchiseEntity entity = mapper.toEntity(franchise);
-        return franchiseRepository.save(entity)
-                .map(mapper::toDomain)
-                .onErrorMap(error -> new PersistenceException("Error updating franchise", error));
+        return resilienceHelper.protectMono(
+                franchiseRepository.save(entity)
+                        .map(mapper::toDomain),
+                "franchise-update"
+        ).onErrorMap(error -> new PersistenceException("Error updating franchise", error));
     }
 }
