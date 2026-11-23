@@ -4,6 +4,8 @@ import co.com.nequi.model.exceptions.PersistenceException;
 import co.com.nequi.model.franchise.Franchise;
 import co.com.nequi.r2dbc.entities.FranchiseEntity;
 import co.com.nequi.r2dbc.mapper.FranchiseEntityMapper;
+import co.com.nequi.resiliencehelper.ReactiveResilienceHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,8 +31,17 @@ class FranchiseRepositoryAdapterTest {
     @Mock
     private FranchiseEntityMapper mapper;
 
+    @Mock
+    private ReactiveResilienceHelper resilienceHelper;
+
     @InjectMocks
     private FranchiseRepositoryAdapter adapter;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(resilienceHelper.protectMono(any(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void shouldSaveFranchiseSuccessfully() {

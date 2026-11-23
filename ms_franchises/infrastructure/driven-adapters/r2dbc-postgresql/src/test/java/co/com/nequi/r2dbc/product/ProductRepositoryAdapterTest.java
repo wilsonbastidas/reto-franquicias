@@ -8,6 +8,8 @@ import co.com.nequi.r2dbc.entities.BranchEntity;
 import co.com.nequi.r2dbc.entities.ProductEntity;
 import co.com.nequi.r2dbc.mapper.BranchEntityMapper;
 import co.com.nequi.r2dbc.mapper.ProductEntityMapper;
+import co.com.nequi.resiliencehelper.ReactiveResilienceHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,8 +43,19 @@ class ProductRepositoryAdapterTest {
     @Mock
     private BranchEntityMapper branchEntityMapper;
 
+    @Mock
+    private ReactiveResilienceHelper resilienceHelper;
+
     @InjectMocks
     private ProductRepositoryAdapter adapter;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(resilienceHelper.protectMono(any(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(resilienceHelper.protectFlux(any(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void shouldSaveProductSuccessfully() {
